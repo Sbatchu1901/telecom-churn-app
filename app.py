@@ -2,10 +2,9 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load trained model
-
-model = joblib.load("xgb_churn_model.pkl")
-
+#  Load model and encoders
+model = joblib.load("xgb_churn_model.pkl")  # Load your trained model
+encoders = joblib.load("label_encoders.pkl")  # Load label encoders used during training
 
 st.title("📉 Telecom Churn Prediction App")
 
@@ -55,20 +54,17 @@ input_dict = {
     'TotalCharges': total_charges
 }
 
-# Convert to DataFrame
 input_df = pd.DataFrame([input_dict])
 
-# Apply same label encoding as training
-from sklearn.preprocessing import LabelEncoder
-
-categorical_cols = input_df.select_dtypes(include='object').columns
-for col in categorical_cols:
-    le = LabelEncoder()
-    input_df[col] = le.fit_transform(input_df[col])
+#  Use the encoders from training (don't re-fit!)
+for col in input_df.select_dtypes(include='object').columns:
+    if col in encoders:
+        input_df[col] = encoders[col].transform(input_df[col])
+    else:
+        st.warning(f"Missing encoder for column: {col}")
 
 # Predict
 if st.button("Predict Churn"):
     prediction = model.predict(input_df)[0]
     st.subheader("🔍 Prediction:")
     st.success("Customer is likely to **Churn**" if prediction == 1 else "Customer is **Not likely to Churn**")
-
