@@ -3,7 +3,9 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load(r"C:\Users\sruja\OneDrive\Desktop\xgb_churn_model.pkl")
+
+model = joblib.load("xgb_churn_model.pkl")
+
 
 st.title("📉 Telecom Churn Prediction App")
 
