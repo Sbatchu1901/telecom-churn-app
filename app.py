@@ -1,10 +1,14 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import shap
+import streamlit.components.v1 as components
+
 
 #  Load model and encoders
 model = joblib.load("xgb_churn_model.pkl")  # Load your trained model
 encoders = joblib.load("label_encoders.pkl")  # Load label encoders used during training
+explainer = joblib.load("shap_explainer.pkl")
 
 st.title("📉 Telecom Churn Prediction App")
 
@@ -68,3 +72,13 @@ if st.button("Predict Churn"):
     prediction = model.predict(input_df)[0]
     st.subheader("🔍 Prediction:")
     st.success("Customer is likely to **Churn**" if prediction == 1 else "Customer is **Not likely to Churn**")
+
+# Explain prediction with SHAP
+shap_values = explainer(input_df)
+
+# Render SHAP HTML and show in Streamlit
+st.subheader("🔍 SHAP Explanation:")
+shap_html = shap.plots.force(explainer.expected_value, shap_values.values[0], input_df.iloc[0], matplotlib=False, show=False)
+
+# Display using components
+components.html(shap.getjs() + shap_html.html(), height=300)
